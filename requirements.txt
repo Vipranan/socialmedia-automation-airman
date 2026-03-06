@@ -1,0 +1,7 @@
+python-telegram-bot
+instagrapi
+python-dotenv
+httpx
+feedparser
+Pillow
+duckduckgo-search
