@@ -4,10 +4,12 @@ import asyncio
 import uuid
 import httpx
 import feedparser
-from duckduckgo_search import DDGS
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 from dotenv import load_dotenv
+
+from google import genai
+from google.genai import types
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
@@ -68,69 +70,41 @@ def fetch_top_aviation_news(limit=5):
                 
     return headlines
 
-async def search_and_download_image(query: str) -> str:
-    """Searches DuckDuckGo for a relevant image and downloads it. Uses fallback if blocked."""
-    import time
+async def generate_and_download_image(prompt: str) -> str:
+    """Generates an image using Google Imagen 4.0 and saves it."""
+    import io
     
-    results = None
-    # 1. Try multiple attempts with DDGS (in case of temporary timeout/rate-limit)
-    for attempt in range(3):
-        try:
-            logger.info(f"Searching image with query: '{query}' (Attempt {attempt+1}/3)")
-            with DDGS() as ddgs:
-                # We consume generator to list to catch timeouts early
-                results = list(ddgs.images(
-                    keywords=query,
-                    region="wt-wt",
-                    safesearch="moderate",
-                    size="Large",
-                    max_results=3
-                ))
-            if results:
-                break
-        except Exception as e:
-            logger.warning(f"DuckDuckGo search attempt {attempt+1} failed: {e}")
-            await asyncio.sleep(2)
-            # If our long specific query fails, fallback to a simpler one on the final retry
-            if attempt == 1:
-                query = "aviation airplane in flight"
-                
-    # 2. Try to download from the found results
-    if results:
-        for res in results:
-            image_url = res.get("image")
-            if not image_url:
-                continue
-                
-            try:
-                # Download the image
-                async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-                    response = await client.get(image_url)
-                    response.raise_for_status()
-                    
-                    filename = f"downloaded_{uuid.uuid4().hex[:8]}.jpg"
-                    with open(filename, "wb") as f:
-                        f.write(response.content)
-                        
-                    return filename
-            except Exception as e:
-                logger.warning(f"Failed to download image from {image_url}: {e}")
-                continue
-
-    # 3. Ultimate Fallback: If DDGS totally fails or connection timeouts, get a generic gorgeous aviation image
-    logger.warning("Search absolutely failed. Falling back to a reliable, generic aviation image.")
-    fallback_url = "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1080&h=1080&fit=crop"
-    try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            response = await client.get(fallback_url)
-            response.raise_for_status()
-            filename = f"downloaded_{uuid.uuid4().hex[:8]}.jpg"
-            with open(filename, "wb") as f:
-                f.write(response.content)
-            return filename
-    except Exception as e:
-        logger.exception("Everything failed, even the fallback image:")
-        raise ValueError("Could not fetch any image.")
+    gemini_api_key = os.getenv("GEMINI_API")
+    if not gemini_api_key:
+        raise ValueError("GEMINI_API key not found in .env")
+        
+    client = genai.Client(api_key=gemini_api_key)
+    logger.info(f"Generating image with prompt: '{prompt}'")
+    
+    loop = asyncio.get_event_loop()
+    def _generate_image():
+        return client.models.generate_images(
+            model='imagen-4.0-generate-001',
+            prompt=prompt,
+            config=types.GenerateImagesConfig(
+                number_of_images=1,
+                aspect_ratio="1:1"
+            )
+        )
+        
+    result = await loop.run_in_executor(None, _generate_image)
+    
+    if result.generated_images:
+        generated_image = result.generated_images[0]
+        image = Image.open(io.BytesIO(generated_image.image.image_bytes))
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+            
+        filename = f"generated_{uuid.uuid4().hex[:8]}.jpg"
+        image.save(filename, "JPEG")
+        return filename
+    else:
+        raise ValueError("Image generation failed to return an image from Google Imagen.")
 
 def add_headline_to_image(image_path: str, headline: str):
     """Adds the news headline as text over the downloaded image and formats for Instagram."""
@@ -288,9 +262,9 @@ async def process_news_selection(update: Update, context: ContextTypes.DEFAULT_T
             
         headline = headlines[idx]
         
-        await query.edit_message_text(text=f"✅ **You selected:**\n{headline}\n\n✍️ Asking `llama3.1:8b` for a caption...", parse_mode='Markdown')
+        await query.edit_message_text(text=f"✅ **You selected:**\n{headline}\n\n✍️ Asking Gemini 2.5 Flash for a caption...", parse_mode='Markdown')
         
-        # 1. Ask Llama to create the Caption
+        # 1. Ask Gemini to create the Caption
         system_prompt = (
             "You are the official AI social media manager for 'AIRMAN' (https://www.theairman.org/). "
             "AIRMAN is a highly premium, sleek, futuristic aviation tech brand. We build Maverick AI and Skynet AI. "
@@ -306,31 +280,31 @@ async def process_news_selection(update: Update, context: ContextTypes.DEFAULT_T
         
         user_prompt = f"Headline: '{headline}'"
         
-        payload = {
-            "model": "llama3.1:8b",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            "stream": False
-        }
+        gemini_api_key = os.getenv("GEMINI_API")
+        if not gemini_api_key:
+            raise ValueError("GEMINI_API key not found in .env")
+        genai_client = genai.Client(api_key=gemini_api_key)
         
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post("http://localhost:11434/api/chat", json=payload)
-            response.raise_for_status()
-            caption = response.json().get("message", {}).get("content", "").strip()
+        loop = asyncio.get_event_loop()
+        def _generate_caption():
+            return genai_client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=system_prompt + "\n\n" + user_prompt,
+            )
+        
+        response = await loop.run_in_executor(None, _generate_caption)
+        caption = response.text.strip().strip('"').strip("'")
 
-        # 2. Search for a relevant image online
-        await message.reply_text("🌍 Searching the web for a matching aviation image...")
+        # 2. Generate a relevant image online using Imagen 4.0
+        await message.reply_text("🎨 Generating an aviation aesthetic image via Imagen 4.0...")
         
-        # Simple query heuristics (Grab main keywords from the headline)
-        search_query = headline.replace("'", "").replace('"', "")
-        if len(search_query) > 50:
-            search_query = search_query[:50] + " aviation airplane"
-        else:
-            search_query = search_query + " aviation airplane"
+        image_prompt = (
+            "A hyper-realistic, highly cinematic, premium, modern, sleek aviation photograph representing: "
+            f'"{headline}". '
+            "High quality, 8k resolution, aspirational, no text in the image."
+        )
             
-        image_path = await search_and_download_image(search_query)
+        image_path = await generate_and_download_image(image_prompt)
         
         # 3. Burn the headline onto the image!
         add_headline_to_image(image_path, headline)

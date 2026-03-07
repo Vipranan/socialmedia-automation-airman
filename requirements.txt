@@ -4,4 +4,4 @@ python-dotenv
 httpx
 feedparser
 Pillow
-duckduckgo-search
+google-genai
