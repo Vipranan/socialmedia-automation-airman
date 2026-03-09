@@ -1,28 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
 # Environment variables
 .env
 
-# Python cache files
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-env/
-.env/
-.venv/
-conda-env/
-
-# Application specific
-downloaded_*.jpg
-generated_*.jpg
-
-# macOS specific
-.DS_Store
-
-# IDEs and Editors
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+
+# Generated images
+generated_*.jpg
+*.jpg
+!assets/logo.png
+!assets/sunset.jpg
+
+# Data files (keep structure, ignore content)
+data/post_history.csv
+data/shown_news.txt
+
+# Instagram session
+session.json

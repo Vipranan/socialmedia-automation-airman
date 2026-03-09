@@ -1,0 +1,3 @@
+# This directory stores application data files
+# - shown_news.txt (headline tracking)
+# - posted_festivals_*.txt (festival tracking)

@@ -13,6 +13,7 @@ sequenceDiagram
     participant Imagen as Imagen 4.0 API
     participant Pillow as Local Image Engine (PIL)
     participant IG as Instagrapi (Instagram)
+    participant LI as LinkedIn API
 
     %% 1. Trigger and Fetch
     User->>Bot: /news
@@ -47,8 +48,13 @@ sequenceDiagram
     
     %% 5. Publication
     Bot-->>User: Send Preview Thumbnail
-    Bot->>IG: Authenticate & photo_upload(JPG, Caption)
-    IG-->>Bot: Success Response (Media PK)
+    par Instagram Post
+        Bot->>IG: Authenticate & photo_upload(JPG, Caption)
+        IG-->>Bot: Success Response (Media PK)
+    and LinkedIn Post
+        Bot->>LI: Authenticate & POST /ugcPosts (Image, Caption)
+        LI-->>Bot: Success Response (Post URN)
+    end
     Bot-->>User: Success Message + Final Link
     deactivate Bot
 ```
@@ -73,5 +79,6 @@ sequenceDiagram
     *   **Brand Overlay**: Composites the external `logo.png` file using alpha channels. 
     *   **Smart Typography**: Falls back aggressively (`Avenir` -> `Futura` -> `Arial`) to maintain high-quality Apple-native typography styles. Lifts the text intelligently using `textwrap` based on character widths.
 
-**5. Distribution (Instagrapi)**
-*   A reverse-engineered Instagram mobile client. Used entirely for the `photo_upload` payload, mimicking a real iOS device publishing a post. 
+**5. Distribution (Instagrapi & LinkedIn SDK)**
+*   **Instagram**: A reverse-engineered mobile client (Instagrapi) used entirely for the `photo_upload` payload, mimicking a real iOS device publishing a post. 
+*   **LinkedIn**: The official REST API (via `httpx`) handling image uploads and UGC post creation for professional domain syndication. 
