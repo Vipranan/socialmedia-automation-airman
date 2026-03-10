@@ -10,6 +10,7 @@ from src.logger import logger
 from src.services.image_service import generate_and_download_image, format_image_for_instagram
 from src.prompts.news_prompts import NEWS_CAPTION_SYSTEM_PROMPT, build_news_imagen_prompt_request
 from src.prompts.festival_prompts import build_festival_caption_prompt, build_festival_imagen_prompt_request
+from src.prompts.font_styles import get_font_description, DEFAULT_FONT_KEY
 
 
 # Festival calendar
@@ -38,9 +39,10 @@ async def _run_in_executor(func):
     return await loop.run_in_executor(None, func)
 
 
-async def generate_content(headline: str) -> tuple[str, str]:
+async def generate_content(headline: str, font_key: str = DEFAULT_FONT_KEY) -> tuple[str, str]:
     """Generate caption and image for a news headline. Returns (caption, image_path)."""
     client = _get_genai_client()
+    font_desc = get_font_description(font_key)
 
     def _gen_caption():
         return client.models.generate_content(
@@ -62,7 +64,7 @@ async def generate_content(headline: str) -> tuple[str, str]:
         poster_title = headline[:30]
         summary = headline
 
-    imagen_prompt_request = build_news_imagen_prompt_request(headline, summary, poster_title)
+    imagen_prompt_request = build_news_imagen_prompt_request(headline, summary, poster_title, font_desc)
 
     def _gen_imagen_prompt():
         return client.models.generate_content(
@@ -81,10 +83,11 @@ async def generate_content(headline: str) -> tuple[str, str]:
     return caption, image_path
 
 
-async def generate_festival_content(festival_name: str) -> tuple[str, str]:
+async def generate_festival_content(festival_name: str, font_key: str = DEFAULT_FONT_KEY) -> tuple[str, str]:
     """Generate caption and image for a festival. Returns (caption, image_path)."""
     logger.info(f"Starting festival post generation for: {festival_name}")
     client = _get_genai_client()
+    font_desc = get_font_description(font_key)
 
     def _gen_caption():
         return client.models.generate_content(
@@ -105,7 +108,7 @@ async def generate_festival_content(festival_name: str) -> tuple[str, str]:
         caption = response.text.strip()
         poster_title = festival_name.upper()
 
-    imagen_prompt_request = build_festival_imagen_prompt_request(festival_name, poster_title)
+    imagen_prompt_request = build_festival_imagen_prompt_request(festival_name, poster_title, font_desc)
 
     def _gen_imagen_prompt():
         return client.models.generate_content(

@@ -1,4 +1,5 @@
 import os
+import json
 import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
@@ -17,10 +18,41 @@ from src.services.news_service import fetch_top_aviation_news, fetch_top_aviatio
 from src.services.content_service import (
     generate_content, generate_festival_content, FESTIVALS,
 )
+from src.prompts.font_styles import FONT_STYLES, DEFAULT_FONT_KEY, font_keyboard_rows
 from src.utils.csv_logger import log_post_to_csv
 
 # Load environment variables
 load_dotenv()
+
+# User font preferences persisted to disk
+_USER_PREFS_FILE = "data/user_prefs.json"
+
+
+def _load_user_prefs() -> dict:
+    if os.path.exists(_USER_PREFS_FILE):
+        try:
+            with open(_USER_PREFS_FILE) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+
+def _save_user_font(user_id: int, font_key: str) -> None:
+    prefs = _load_user_prefs()
+    prefs[str(user_id)] = font_key
+    with open(_USER_PREFS_FILE, "w") as f:
+        json.dump(prefs, f)
+
+
+def _get_user_font(context: ContextTypes.DEFAULT_TYPE, user_id: int) -> str:
+    """Return the user's chosen font key, falling back to the default."""
+    # Check in-session first (fastest), then disk, then default
+    font = context.user_data.get("font_key")
+    if font:
+        return font
+    prefs = _load_user_prefs()
+    return prefs.get(str(user_id), DEFAULT_FONT_KEY)
 
 
 # --- Telegram command handlers ---
@@ -35,13 +67,55 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_text = (
         "🤖 **AIRMAN Social Media Bot Skills:**\n\n"
-        "📰 **/news** - Fetch the top 5 trending aviation news headlines.\n\n"
+        "📰 **/news** - Fetch the top 10 trending aviation news headlines.\n\n"
         "🎉 **/forcefestival [Name]** - Instantly generate a special festival poster (e.g. /forcefestival Diwali).\n\n"
+        "🔤 **/font** - Choose a Google Font style for poster text.\n\n"
         "🚀 **/startauto** - Turn on Auto-Pilot for both daily news and calendar festivals.\n\n"
         "🛑 **/stopauto** - Deactivate Auto-Pilot scheduling.\n\n"
         "ℹ️ **/help** - Show this help message."
     )
     await update.message.reply_text(help_text, parse_mode='Markdown')
+
+
+async def font_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show a font picker so the user can choose their poster text style."""
+    current_key = _get_user_font(context, update.effective_user.id)
+    current_label = FONT_STYLES[current_key]["label"]
+
+    keyboard = [
+        [InlineKeyboardButton(label, callback_data=cb)]
+        for label, cb in font_keyboard_rows()
+    ]
+    await update.message.reply_text(
+        f"🔤 **Choose a Google Font for your posters:**\n\n"
+        f"Current font: `{current_label}`\n\n"
+        f"Pick one below 👇",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode='Markdown',
+    )
+
+
+async def handle_font_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle font picker callback."""
+    query = update.callback_query
+    await query.answer()
+
+    font_key = query.data[len("font_"):]  # strip 'font_' prefix
+    if font_key not in FONT_STYLES:
+        await query.edit_message_text("❌ Unknown font. Please try /font again.")
+        return
+
+    style = FONT_STYLES[font_key]
+    context.user_data["font_key"] = font_key
+    _save_user_font(query.from_user.id, font_key)
+
+    await query.edit_message_text(
+        f"✅ Font updated!\n\n"
+        f"**{style['label']}**\n"
+        f"Preview feel: _{style['preview']}_\n\n"
+        f"Your next poster will use this style.",
+        parse_mode='Markdown',
+    )
 
 
 async def handle_news_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -90,12 +164,13 @@ async def process_news_selection(update: Update, context: ContextTypes.DEFAULT_T
             return
 
         headline = headlines[idx]
+        font_key = _get_user_font(context, query.from_user.id)
         await query.edit_message_text(
             text=f"✅ **You selected:**\n{headline}\n\n✍️ Generating caption and image... Hang tight!",
             parse_mode='Markdown'
         )
 
-        caption, image_path = await generate_content(headline)
+        caption, image_path = await generate_content(headline, font_key=font_key)
 
         context.user_data['pending_post'] = {
             'type': 'news',
@@ -330,11 +405,12 @@ async def forcefestival(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     festival_name = " ".join(context.args)
+    font_key = _get_user_font(context, update.effective_user.id)
     logger.info(f"Force festival command received for: {festival_name}")
     await update.message.reply_text(f"🚀 Generating special festival post for '{festival_name}'...")
     image_path = None
     try:
-        caption, image_path = await _post_festival(festival_name)
+        caption, image_path = await _post_festival(festival_name, font_key=font_key)
         with open(image_path, 'rb') as photo:
             await update.message.reply_photo(photo=photo, caption="✅ Festival post published to Instagram!")
         safe_caption = caption[:4000] + "..." if len(caption) > 4000 else caption
@@ -358,9 +434,9 @@ def _format_linkedin_caption(caption: str) -> str:
     return text
 
 
-async def _post_festival(festival_name: str) -> tuple[str, str]:
+async def _post_festival(festival_name: str, font_key: str = DEFAULT_FONT_KEY) -> tuple[str, str]:
     """Generate festival content and post to Instagram + LinkedIn. Returns (caption, image_path)."""
-    caption, image_path = await generate_festival_content(festival_name)
+    caption, image_path = await generate_festival_content(festival_name, font_key=font_key)
 
     cl = get_instagram_client()
     loop = asyncio.get_event_loop()
@@ -406,9 +482,11 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("news", handle_news_command))
+    application.add_handler(CommandHandler("font", font_command))
     application.add_handler(CommandHandler("startauto", startauto))
     application.add_handler(CommandHandler("stopauto", stopauto))
     application.add_handler(CommandHandler("forcefestival", forcefestival))
+    application.add_handler(CallbackQueryHandler(handle_font_selection, pattern=r"^font_"))
     application.add_handler(CallbackQueryHandler(process_news_selection, pattern=r"^\d+$"))
     application.add_handler(CallbackQueryHandler(handle_post_approval, pattern=r"^approve_"))
 

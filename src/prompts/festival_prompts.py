@@ -52,7 +52,7 @@ def build_festival_caption_prompt(festival_name: str) -> str:
 # Imagen prompt builders (one per style)
 # ---------------------------------------------------------------------------
 
-def _intimate_prompt(festival_name: str, poster_title: str) -> str:
+def _intimate_prompt(festival_name: str, poster_title: str, font_desc: str) -> str:
     return f"""Festival: {festival_name}. Create a social-media-ready aviation poster for Instagram.
 
 Think like a professional social media manager: emotional, warm, scroll-stopping. Real and believable, NOT over-produced.
@@ -64,13 +64,13 @@ Rules:
 - Partial human elements (hands, forearm, silhouette) allowed if they add warmth — never a full face.
 - Shallow depth of field, natural warm or blue-hour light. Shot on 50mm lens. NO fake bokeh rings, no CGI.
 - Bottom 35–40% must fall into natural deep shadow (dark seat, dark cockpit panel, dark cabin) — no gradient strip.
-- TEXT: "{poster_title}" bottom-left, white Helvetica Neue Bold, title case. Clean, no box.
+- TEXT: "{poster_title}" bottom-left, white {font_desc}, title case. Clean, no box.
 - No logos. No URL. No other text. Only "{poster_title}".
 
 Return ONLY the image generation prompt. Aspect ratio 1:1."""
 
 
-def _celebration_prompt(festival_name: str, poster_title: str) -> str:
+def _celebration_prompt(festival_name: str, poster_title: str, font_desc: str) -> str:
     return f"""Festival: {festival_name}. Create a social-media-ready aviation poster for Instagram.
 
 Think like a professional social media manager: patriotic, energetic, real-looking. NOT over-produced or fantasy.
@@ -82,13 +82,13 @@ Rules:
 - Real daylight or golden-hour light. Crisp jet detail. No CGI texture.
 - Crowd is dark silhouette only at the bottom 15% — no faces, no detail.
 - Bottom 25–30% naturally dark from crowd shadow and dark ground.
-- TEXT: "{poster_title}" bottom-left, white Helvetica Neue Bold, title case. Clean, no box.
+- TEXT: "{poster_title}" bottom-left, white {font_desc}, title case. Clean, no box.
 - No logos. No URL. No other text. Only "{poster_title}".
 
 Return ONLY the image generation prompt. Aspect ratio 1:1."""
 
 
-def _cinematic_prompt(festival_name: str, poster_title: str) -> str:
+def _cinematic_prompt(festival_name: str, poster_title: str, font_desc: str) -> str:
     return f"""Festival: {festival_name}. Create a social-media-ready aviation poster for Instagram.
 
 Think like a professional social media manager: the image must stop the scroll, feel real, and be instantly beautiful. NOT over-produced, NOT a fantasy composite.
@@ -100,7 +100,7 @@ Rules:
 - ONE single atmospheric element from {festival_name} in the sky — just one: either sky lanterns drifting, OR fireworks bursting, OR snowfall, OR golden dusk light. NOT multiple combined. Pick whichever single element is most iconic for {festival_name}.
 - Sky fills the upper 65% of the frame. Natural, real-looking light — no CGI glow, no over-saturated colours. Think National Geographic quality.
 - Bottom 30% is dark naturally (runway tarmac at night, dark horizon) — no fake gradient.
-- TEXT: "{poster_title}" bottom-left, white Helvetica Neue Bold, title case. Clean, no box.
+- TEXT: "{poster_title}" bottom-left, white {font_desc}, title case. Clean, no box.
 - No logos. No URL. No other text. Only "{poster_title}".
 
 Return ONLY the image generation prompt. Aspect ratio 1:1."""
@@ -114,10 +114,14 @@ _STYLE_BUILDERS = {
 }
 
 
-def build_festival_imagen_prompt_request(festival_name: str, poster_title: str) -> str:
+def build_festival_imagen_prompt_request(
+    festival_name: str, poster_title: str, font_desc: str
+) -> str:
     """
     Return the Gemini request that asks the model to write an Imagen prompt
     for a festival poster, choosing the correct style automatically.
+
+    font_desc: visual description of the chosen Google Font (from font_styles.py).
     """
     style = get_festival_style(festival_name)
-    return _STYLE_BUILDERS[style](festival_name, poster_title)
+    return _STYLE_BUILDERS[style](festival_name, poster_title, font_desc)
