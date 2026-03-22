@@ -9,7 +9,7 @@ from src.config import GEMINI_API_KEY
 from src.logger import logger
 from src.services.image_service import generate_and_download_image, format_image_for_instagram
 from src.prompts.news_prompts import NEWS_CAPTION_SYSTEM_PROMPT, build_news_imagen_prompt_request
-from src.prompts.festival_prompts import build_festival_caption_prompt, build_festival_imagen_prompt_request
+from src.prompts.festival_prompts import build_festival_caption_prompt
 from src.prompts.font_styles import get_font_description, DEFAULT_FONT_KEY
 
 
@@ -87,7 +87,6 @@ async def generate_festival_content(festival_name: str, font_key: str = DEFAULT_
     """Generate caption and image for a festival. Returns (caption, image_path)."""
     logger.info(f"Starting festival post generation for: {festival_name}")
     client = _get_genai_client()
-    font_desc = get_font_description(font_key)
 
     def _gen_caption():
         return client.models.generate_content(
@@ -108,16 +107,17 @@ async def generate_festival_content(festival_name: str, font_key: str = DEFAULT_
         caption = response.text.strip()
         poster_title = festival_name.upper()
 
-    imagen_prompt_request = build_festival_imagen_prompt_request(festival_name, poster_title, font_desc)
-
-    def _gen_imagen_prompt():
-        return client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=imagen_prompt_request
-        )
-
-    imagen_response = await _run_in_executor(_gen_imagen_prompt)
-    image_prompt = imagen_response.text.strip()
+    image_prompt = (
+        f"A photorealistic photograph celebrating '{festival_name}' with an aviation theme. "
+        f"ONE cohesive real-world scene — NOT illustrated, NOT CGI, NOT a collage. "
+        f"Prominently feature authentic {festival_name} visual elements (decorations, colors, symbols, cultural details) "
+        "naturally integrated into a real aviation setting. "
+        f"For example, if Diwali: glowing oil lamps lining a real runway at night, rangoli on tarmac, warm bokeh lights, aircraft silhouette. "
+        "If Christmas: snow-dusted aircraft on a real airport apron, soft festive lights. If New Year: real fireworks over an airport skyline. "
+        "Subtle cinematic quality through lighting only — golden hour, volumetric light, shallow depth of field, natural atmosphere. "
+        f"The text '{poster_title}' overlaid once as clean minimal 2D sans-serif typography. "
+        "Shot on professional camera, 8K resolution, single unified real-world composition."
+    )
     logger.info(f"Imagen prompt: {image_prompt}")
 
     image_path = await generate_and_download_image(image_prompt)

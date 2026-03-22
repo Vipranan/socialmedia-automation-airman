@@ -10,8 +10,8 @@ SHOWN_NEWS_HEADLINES = load_shown_news()
 
 
 def _fetch_feed_headlines(query: str) -> list[str]:
-    """Fetch fresh headlines from a single Google News RSS query, stripping source tags."""
-    url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+    """Fetch last-24h headlines from a single Google News RSS query, stripping source tags."""
+    url = f"https://news.google.com/rss/search?q={query}+when:1d&hl=en-US&gl=US&ceid=US:en"
     feed = feedparser.parse(url)
     titles = []
     for entry in feed.entries:

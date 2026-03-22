@@ -53,57 +53,72 @@ def build_festival_caption_prompt(festival_name: str) -> str:
 # ---------------------------------------------------------------------------
 
 def _intimate_prompt(festival_name: str, poster_title: str, font_desc: str) -> str:
-    return f"""Festival: {festival_name}. Create a social-media-ready aviation poster for Instagram.
+    return f"""You are a world-class aviation photographer and Instagram art director. Create a photorealistic, cinematic Imagen prompt for a {festival_name} festival post for the AIRMAN brand.
 
-Think like a professional social media manager: emotional, warm, scroll-stopping. Real and believable, NOT over-produced.
+MOOD: Intimate, warm, emotionally resonant — feels like a real photograph, not a render.
 
-Write an Imagen prompt for an INTIMATE CLOSE-UP (1:1 square).
+SCENE DIRECTION:
+- ONE tightly framed aviation detail that emotionally connects to {festival_name}: e.g. a pilot's gloved hands resting on the yoke as warm festival light streams through the cockpit window, or a passenger's hand beside an oval window with soft festival colours glowing in the clouds below.
+- Partial human presence only (hands, forearm, silhouette edge) — never a full face.
+- Shot on a Sony A7R V with a 85mm f/1.4 lens. Shallow depth of field, subject razor-sharp, background melts into warm bokeh. Film grain texture, not digital clean.
+- Lighting: natural — golden hour, candle-warm, or cool blue-hour. Never artificial studio light.
+- Colour grade: muted warm tones or desaturated cool blues. Think Roger Deakins. NO over-saturation.
+- Bottom 35–40% falls into natural deep shadow (dark cockpit panel, dark cabin floor, dark seat leather) — organic, not a gradient overlay.
+- Composition: subject occupies centre-left. Right side breathes open.
 
-Rules:
-- ONE tight, emotionally resonant aviation detail that naturally fits {festival_name}: pilot hands resting on controls at golden hour, passenger hands near a window with soft clouds outside, an empty first-class seat by an oval window at dawn. Real, quiet, human.
-- Partial human elements (hands, forearm, silhouette) allowed if they add warmth — never a full face.
-- Shallow depth of field, natural warm or blue-hour light. Shot on 50mm lens. NO fake bokeh rings, no CGI.
-- Bottom 35–40% must fall into natural deep shadow (dark seat, dark cockpit panel, dark cabin) — no gradient strip.
-- TEXT: "{poster_title}" bottom-left, white {font_desc}, title case. Clean, no box.
-- No logos. No URL. No other text. Only "{poster_title}".
+TEXT OVERLAY (mandatory, rendered IN the image):
+- Text: "{poster_title}"
+- Position: bottom-left corner, clear of subject
+- Style: white, {font_desc}, title case, no background box, no shadow box
+- No logos. No URLs. No other text whatsoever. Only "{poster_title}".
 
-Return ONLY the image generation prompt. Aspect ratio 1:1."""
+Output: ONE single Imagen generation prompt only. No explanation. Do NOT include aspect ratio or any spec notes in the prompt."""
 
 
 def _celebration_prompt(festival_name: str, poster_title: str, font_desc: str) -> str:
-    return f"""Festival: {festival_name}. Create a social-media-ready aviation poster for Instagram.
+    return f"""You are a world-class aviation photographer and Instagram art director. Create a photorealistic, cinematic Imagen prompt for a {festival_name} festival post for the AIRMAN brand.
 
-Think like a professional social media manager: patriotic, energetic, real-looking. NOT over-produced or fantasy.
+MOOD: Triumphant, energetic, patriotic — feels like a real press photograph from an airshow.
 
-Write an Imagen prompt for a CELEBRATION / AIRSHOW WIDE SHOT (1:1 square).
+SCENE DIRECTION:
+- TWO or THREE military jets in tight delta formation, captured mid-pass low over an airfield at high speed. Coloured smoke trails in colours iconic to {festival_name}.
+- Camera angle: ground level, wide 24mm lens, slight upward tilt. Jets fill the upper two-thirds of frame.
+- Crowd silhouettes occupy only the bottom 10–15% of the frame — dark, no faces, no individual detail.
+- Lighting: harsh midday sun OR dramatic golden hour backlight creating lens flare along the jet edges. Real light, not CGI.
+- Motion blur on smoke trails to convey speed. Aircraft body crisp and detailed — rivets, markings, exhaust heat shimmer visible.
+- Colour grade: high contrast, slightly desaturated — like a TIME Magazine cover shot. No oversaturation.
+- Bottom 25% naturally dark from crowd shadow and dark tarmac.
 
-Rules:
-- TWO or THREE military jets in tight formation flying low over an airfield, coloured smoke trails in {festival_name} national colours. Wide angle, shot from ground level, crowd silhouettes at the very bottom edge.
-- Real daylight or golden-hour light. Crisp jet detail. No CGI texture.
-- Crowd is dark silhouette only at the bottom 15% — no faces, no detail.
-- Bottom 25–30% naturally dark from crowd shadow and dark ground.
-- TEXT: "{poster_title}" bottom-left, white {font_desc}, title case. Clean, no box.
-- No logos. No URL. No other text. Only "{poster_title}".
+TEXT OVERLAY (mandatory, rendered IN the image):
+- Text: "{poster_title}"
+- Position: bottom-left corner
+- Style: white, {font_desc}, title case, no background box
+- No logos. No URLs. No other text. Only "{poster_title}".
 
-Return ONLY the image generation prompt. Aspect ratio 1:1."""
+Output: ONE single Imagen generation prompt only. No explanation. Do NOT include aspect ratio or any spec notes in the prompt."""
 
 
 def _cinematic_prompt(festival_name: str, poster_title: str, font_desc: str) -> str:
-    return f"""Festival: {festival_name}. Create a social-media-ready aviation poster for Instagram.
+    return f"""You are a world-class aviation photographer and Instagram art director. Create a photorealistic, cinematic Imagen prompt for a {festival_name} festival post for the AIRMAN brand.
 
-Think like a professional social media manager: the image must stop the scroll, feel real, and be instantly beautiful. NOT over-produced, NOT a fantasy composite.
+MOOD: Epic, awe-inspiring, scroll-stopping — feels like a real photograph shot for a magazine cover.
 
-Write an Imagen prompt for a CINEMATIC WIDE SHOT (1:1 square).
+SCENE DIRECTION:
+- ONE wide-body commercial aircraft (A380 or Boeing 777 silhouette) either on a rain-wet runway at night OR lifting off at low angle against a dramatic sky.
+- Camera: ground level or low 3-point angle, 24mm wide lens. Aircraft dominates 50–60% of the frame. Sky owns the upper half.
+- ONE single atmospheric element tied to {festival_name} visible in the sky — choose whichever single element is most visually iconic for this festival (e.g. distant fireworks, drifting sky lanterns, heavy snowfall, a blood-orange dusk). Do NOT combine multiple elements.
+- Lighting: the scene is lit by that atmospheric element + ambient — no studio lights, no artificial fill. If fireworks: their burst glow reflects on the wet tarmac. If lanterns: warm orange glow halos the fuselage. If snow: cold blue-white moonlight. If dusk: long shadow from the aircraft.
+- Photography style: National Geographic meets Roger Deakins. Film grain, natural vignette, slightly underexposed midtones, luminous highlights.
+- Colour grade: cinematic — deep shadows, rich blacks, muted midtones, glowing highlights. No HDR look, no over-sharpening.
+- Bottom 30% is deep black naturally (wet tarmac reflections, dark ground, runway edge lights).
 
-Rules:
-- ONE aircraft (commercial airliner silhouette or wide-body jet) on a runway or taking off, photographed from ground level or low angle. The aircraft is the clear subject.
-- ONE single atmospheric element from {festival_name} in the sky — just one: either sky lanterns drifting, OR fireworks bursting, OR snowfall, OR golden dusk light. NOT multiple combined. Pick whichever single element is most iconic for {festival_name}.
-- Sky fills the upper 65% of the frame. Natural, real-looking light — no CGI glow, no over-saturated colours. Think National Geographic quality.
-- Bottom 30% is dark naturally (runway tarmac at night, dark horizon) — no fake gradient.
-- TEXT: "{poster_title}" bottom-left, white {font_desc}, title case. Clean, no box.
-- No logos. No URL. No other text. Only "{poster_title}".
+TEXT OVERLAY (mandatory, rendered IN the image):
+- Text: "{poster_title}"
+- Position: bottom-left corner, sitting just above the dark ground zone
+- Style: white, {font_desc}, title case, no background box, no outline
+- No logos. No URLs. No other text. Only "{poster_title}".
 
-Return ONLY the image generation prompt. Aspect ratio 1:1."""
+Output: ONE single Imagen generation prompt only. No explanation. Do NOT include aspect ratio or any spec notes in the prompt."""
 
 
 # Public entry point used by content_service
