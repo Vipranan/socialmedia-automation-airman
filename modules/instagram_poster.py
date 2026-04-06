@@ -3,11 +3,13 @@ Module: instagram_poster.py
 Publishes images to Instagram using instagrapi (username + password login).
 """
 
+import logging
 import os
 import time
-import logging
+
 from instagrapi import Client
-from config.settings import INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
+
+from config.settings import INSTAGRAM_PASSWORD, INSTAGRAM_USERNAME
 
 logger = logging.getLogger(__name__)
 

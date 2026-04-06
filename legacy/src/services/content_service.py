@@ -7,11 +7,16 @@ from google.genai import types
 
 from src.config import GEMINI_API_KEY
 from src.logger import logger
-from src.services.image_service import generate_and_download_image, format_image_for_instagram
-from src.prompts.news_prompts import NEWS_CAPTION_SYSTEM_PROMPT, build_news_imagen_prompt_request
 from src.prompts.festival_prompts import build_festival_caption_prompt
-from src.prompts.font_styles import get_font_description, DEFAULT_FONT_KEY
-
+from src.prompts.font_styles import DEFAULT_FONT_KEY, get_font_description
+from src.prompts.news_prompts import (
+    NEWS_CAPTION_SYSTEM_PROMPT,
+    build_news_imagen_prompt_request,
+)
+from src.services.image_service import (
+    format_image_for_instagram,
+    generate_and_download_image,
+)
 
 # Festival calendar
 FESTIVALS = {

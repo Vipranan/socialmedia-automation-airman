@@ -1,34 +1,40 @@
-import os
-import json
-import time
 import asyncio
+import json
+import os
+import time
 from datetime import datetime
+
 from dotenv import load_dotenv
-
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-
 from google import genai as _genai
 from google.genai import types as _types
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
-from src.logger import logger
-from config.settings import GEMINI_API_KEY, GEMINI_TEXT_MODEL, TELEGRAM_BOT_TOKEN, LINKEDIN_ACCESS_TOKEN
-
-# --- Modules (new backend) ---
-from modules.news_fetcher import fetch_aviation_news
+from config.settings import (
+    GEMINI_API_KEY,
+    GEMINI_TEXT_MODEL,
+    LINKEDIN_ACCESS_TOKEN,
+    TELEGRAM_BOT_TOKEN,
+)
+from modules.feedback_store import create_post_record, init_db, mark_posted
+from modules.festival_checker import get_todays_festival
 from modules.gemini_client import (
-    generate_news_headline, generate_image_prompt, generate_caption,
+    generate_caption,
     generate_image,
+    generate_image_prompt,
+    generate_news_headline,
 )
 from modules.image_branding import apply_branding
 from modules.instagram_poster import post_to_instagram
 from modules.linkedin_poster import post_to_linkedin as _linkedin_post
-from modules.feedback_store import init_db, create_post_record, mark_posted
-from modules.festival_checker import get_todays_festival
+
+# --- Modules (new backend) ---
+from modules.news_fetcher import fetch_aviation_news
+from src.logger import logger
 
 # --- Improved prompts from src ---
 from src.prompts.festival_prompts import build_festival_caption_prompt
-from src.prompts.font_styles import FONT_STYLES, DEFAULT_FONT_KEY, font_keyboard_rows
+from src.prompts.font_styles import DEFAULT_FONT_KEY, FONT_STYLES, font_keyboard_rows
 from src.utils.csv_logger import log_post_to_csv
 
 _gemini_client = _genai.Client(api_key=GEMINI_API_KEY)

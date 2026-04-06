@@ -10,7 +10,9 @@ Flow:
 """
 
 import logging
+
 import requests
+
 from config.settings import LINKEDIN_ACCESS_TOKEN
 
 logger = logging.getLogger(__name__)

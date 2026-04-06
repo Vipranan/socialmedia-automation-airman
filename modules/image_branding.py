@@ -9,7 +9,9 @@ Layout:
 """
 
 import os
+
 from PIL import Image, ImageDraw, ImageFont
+
 from config.settings import (
     COMPANY_LOGO_PATH,
     IMAGE_OUTPUT_DIR,
