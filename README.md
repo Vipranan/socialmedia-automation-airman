@@ -42,25 +42,57 @@ airman-social-bot/
 ├── requirements.txt           # Dependencies
 ├── .env.example              # Environment template
 │
-├── src/                      # Source code modules
-│   ├── config.py             # App configuration
+├── config/                    # Configuration
+│   └── settings.py           # Centralized settings
+│
+├── modules/                   # Core bot modules
+│   ├── telegram_bot.py       # Telegram bot handlers
+│   ├── orchestrator.py       # Workflow orchestration
+│   ├── gemini_client.py      # Gemini AI integration
+│   ├── news_fetcher.py       # News fetching (RSS/API)
+│   ├── image_branding.py     # Image processing & branding
+│   ├── instagram_poster.py   # Instagram publishing
+│   ├── linkedin_poster.py   # LinkedIn publishing
+│   ├── festival_checker.py  # Festival calendar
+│   └── feedback_store.py    # Post tracking & feedback
+│
+├── src/                       # Utility modules
 │   ├── logger.py             # Logging setup
-│   ├── services/             # Core business logic
-│   ├── utils/                # Helper utilities
-│   └── prompts/              # Generative AI prompts
+│   ├── config.py             # App configuration
+│   ├── services/             # Core services
+│   │   ├── news_service.py
+│   │   ├── image_service.py
+│   │   ├── content_service.py
+│   │   ├── linkedin_service.py
+│   │   └── instagram_service.py
+│   ├── prompts/              # AI prompts
+│   │   ├── festival_prompts.py
+│   │   ├── news_prompts.py
+│   │   └── font_styles.py
+│   └── utils/                # Helper utilities
+│       ├── csv_logger.py
+│       └── news_tracker.py
 │
 ├── docs/                     # Documentation
-│   ├── README.md
 │   ├── QUICKSTART.md
 │   ├── ARCHITECTURE.md
-│   └── CODEBASE_DOCUMENTATION.md
+│   ├── CODEBASE_DOCUMENTATION.md
+│   └── ORGANIZATION_*.md
 │
 ├── tests/                    # Testing scripts
+│   ├── test_tg.py
+│   ├── test_ig.py
+│   ├── api_test.py
+│   └── list_models.py
 │
 ├── assets/                   # Brand assets
 │   └── logo.png             # AIRMAN logo
 │
 ├── data/                     # Data files (auto-generated)
+│   ├── feedback.db           # Post records & feedback
+│   ├── post_history.csv     # Posting history
+│   ├── instagram_session.json
+│   └── images/              # Generated images
 │
 └── logs/                     # Application logs
 ```
@@ -85,7 +117,8 @@ airman-social-bot/
 - **Bot Framework**: python-telegram-bot
 - **Social Media**: Instagrapi, LinkedIn API
 - **Image Processing**: Pillow (PIL)
-- **Content Sourcing**: feedparser
+- **Content Sourcing**: feedparser, requests
+- **Database**: SQLite (feedback tracking)
 
 ---
 
@@ -93,6 +126,7 @@ airman-social-bot/
 
 - Python 3.12+
 - Telegram Bot Token
+- Telegram Admin Chat ID & User IDs
 - Instagram credentials
 - Google Gemini API key
 - AIRMAN logo (PNG)
@@ -107,6 +141,7 @@ airman-social-bot/
 | `/start` | Initialize bot |
 | `/help` | Show commands |
 | `/news` | Fetch & post news |
+| `/font` | Choose Google Font style |
 | `/startauto` | Enable auto-pilot |
 | `/stopauto` | Disable auto-pilot |
 | `/forcefestival [Name]` | Manual festival post |
