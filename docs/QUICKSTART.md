@@ -15,8 +15,8 @@ Get the AIRMAN Instagram automation bot up and running in minutes. This guide co
    - Must have access to `imagen-4.0-generate-001` (image generation)
 
 ### Optional but Recommended
-- **macOS** - For native Avenir/Futura fonts (falls back to Arial on other systems)
 - **AIRMAN logo** - PNG file in `assets/` directory (transparent PNG)
+- **LinkedIn API credentials** - For dual-platform posting
 
 ---
 
@@ -24,8 +24,8 @@ Get the AIRMAN Instagram automation bot up and running in minutes. This guide co
 
 ### Step 1: Clone or Download Project
 ```bash
-git clone <repository-url>
-cd airman-social-bot
+git clone https://github.com/Vipranan/socialmedia-automation-airman.git
+cd socialmedia-automation-airman
 ```
 
 ### Step 2: Install Python Dependencies
@@ -41,6 +41,7 @@ Required packages:
 - `feedparser` - RSS feed parser
 - `python-dotenv` - Environment management
 - `httpx` - HTTP client
+- `requests` - HTTP library
 
 ### Step 3: Configure Environment Variables
 
@@ -52,13 +53,13 @@ cp .env.example .env
 Edit `.env` with your credentials:
 ```env
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+TELEGRAM_ADMIN_CHAT_ID=your_telegram_chat_id
+TELEGRAM_ADMIN_IDS=123456789
 INSTAGRAM_USERNAME=your_instagram_username
 INSTAGRAM_PASSWORD=your_instagram_password
 GEMINI_API=your_google_gemini_api_key
 
 # Optional LinkedIn Support
-LINKEDIN_CLIENT_ID=your_client_id
-LINKEDIN_CLIENT_SECRET=your_client_secret
 LINKEDIN_ACCESS_TOKEN=your_access_token
 ```
 
@@ -103,17 +104,17 @@ INFO - Application started and polling for updates.
 **Step 1**: Send `/news` command
 
 The bot will:
-- Fetch top 5 trending aviation headlines from Google News
-- Display them as interactive buttons (Option 1-5)
+- Fetch top 7 aviation headlines (one per category)
+- Display them as interactive buttons
 
 **Step 2**: Click one of the options
 
 The bot will:
 1. Generate an Instagram caption using Gemini 2.5 Flash
 2. Create a hyper-realistic image using Imagen 4.0
-3. Apply AIRMAN branding (resize to 1080x1080, add logo)
-4. Post to Instagram automatically
-5. Send you a preview in Telegram with the caption
+3. Apply AIRMAN branding (add logo, website URL)
+4. Show preview for approval
+5. Post to Instagram and/or LinkedIn
 
 **Timeline**: Entire process takes 15-30 seconds depending on API response times.
 
@@ -150,15 +151,17 @@ The bot will create a special branded post for that occasion.
 
 **Built-in Festival Calendar**:
 - January 1 - New Year
-- January 26 - Republic Day (India)
+- January 14 - Makar Sankranti & Pongal
+- January 26 - Republic Day
 - February 14 - Valentine's Day
 - March 8 - International Women's Day
+- April 14 - Baisakhi
 - April 22 - Earth Day
-- August 15 - Independence Day (India)
+- August 15 - Independence Day
 - August 19 - National Aviation Day
 - October 2 - Gandhi Jayanti
-- October 24 - United Nations Day
-- November 11 - National Education Day (India)
+- October 31 - Halloween
+- November 1 - Diwali Season
 - December 25 - Christmas
 
 ---
@@ -173,28 +176,27 @@ Gemini 2.5 Flash receives a system prompt defining AIRMAN's brand voice:
 - Always appends `https://www.theairman.org/`
 
 ### Image Generation
-Imagen 4.0 creates images based on prompts like:
-```
-A hyper-realistic, highly cinematic, premium, modern aviation poster 
-representing: '[headline]'. The text '[poster_title]' MUST be beautifully 
-integrated into the scene environment. High quality, 8k resolution, aspirational.
-```
+Imagen 4.0 creates images based on prompts optimized for Instagram.
 
 ### Image Processing (Pillow)
 1. Resize to 1080x1080 (Instagram square format)
 2. Composite AIRMAN logo with alpha blending
-3. Save as high-quality JPEG (95% quality)
+3. Add website URL at bottom
+4. Save as high-quality PNG
 
 ### Instagram Publishing
-Posts via Instagrapi with:
-- Finalized image
-- AI-generated caption
-- Brand URL
-- Relevant hashtags
+Posts via Instagrapi with the finalized image and AI-generated caption.
 
 ---
 
 ## 🧪 Testing Your Setup
+
+### Run Test Suite
+```bash
+pytest tests/ -v
+```
+
+Expected output: 6 tests passing
 
 ### Test Individual Components
 
@@ -220,47 +222,61 @@ python tests/list_models.py
 
 ---
 
+## 🧹 Code Quality
+
+This project uses professional development tools:
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run linting
+ruff check .
+
+# Run type checking
+mypy modules/ --config-file=pyproject.toml
+
+# Format code
+ruff format .
+```
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Bot Won't Start
 
 **Error**: `Missing required environment variables`
-- **Fix**: Check `.env` file exists and has all 4 required variables
+- **Fix**: Check `.env` file exists and has all required variables
 
 **Error**: `Failed to login to Instagram`
 - **Fix**: Verify Instagram username/password are correct
-- **Fix**: Check if Instagram requires 2FA or captcha (try logging in manually first)
-- **Fix**: Avoid special characters in password that need escaping
+- **Fix**: Check if Instagram requires 2FA or captcha
+- **Fix**: Avoid special characters in password
 
 ### Image Generation Fails
 
 **Error**: `Failed to generate image`
 - **Fix**: Verify Gemini API key has Imagen access
 - **Fix**: Check API quota limits at [Google AI Studio](https://aistudio.google.com/)
-- **Fix**: Ensure internet connection is stable
 
 ### Posts Not Appearing on Instagram
 
 **Error**: `Image_process_failed`
-- **Fix**: Image is automatically resized to 1080x1080, but check `logo.png` exists
-- **Fix**: Verify Instagram account isn't restricted or shadowbanned
+- **Fix**: Check `logo.png` exists in `assets/`
+- **Fix**: Verify Instagram account isn't restricted
 
 **Error**: `Challenge Required`
-- **Fix**: Instagram detected unusual activity - log in manually via app/browser first
+- **Fix**: Instagram detected unusual activity - log in manually first
 - **Fix**: Wait a few hours before retrying
 
 ### Duplicate Headlines
 
 **Issue**: Same news appearing repeatedly
-- **Fix**: Delete `shown_news.txt` to reset tracking
-- **Fix**: Check if Google News RSS feed is updating (may be stale)
-
-### Font Issues
-
-**Issue**: Text looks wrong on generated images
-- **Fix**: On macOS, fonts should work automatically (Avenir/Futura)
-- **Fix**: On other systems, Arial is used as fallback
-- **Fix**: Install custom fonts and update `format_image_for_instagram()` function
+- **Fix**: Delete `data/shown_news.txt` to reset tracking
 
 ---
 
@@ -277,6 +293,7 @@ tail -f logs/bot.log
 
 - `data/shown_news.txt` - Previously shown headlines (prevents duplicates)
 - `data/posted_festivals_2026.txt` - Posted festivals for current year
+- `data/feedback.db` - Post records and feedback
 
 ---
 
@@ -286,27 +303,20 @@ tail -f logs/bot.log
 
 Edit `main.py` to change posting frequency:
 ```python
-# Current: Every 1 hour
+# Current: Every 1 hour (3600 seconds)
 context.job_queue.run_repeating(auto_post_news, interval=3600, first=10)
-
-# Change to every 2 hours:
-context.job_queue.run_repeating(auto_post_news, interval=7200, first=10)
 ```
 
 ### Modify Festival Calendar
 
-Edit the `FESTIVALS` dictionary in `src/services/content_service.py`:
+Edit `config/settings.py`:
 ```python
-FESTIVALS = {
-    "01-01": "New Year",
-    "12-31": "New Year's Eve",  # Add new festival
+INDIAN_FESTIVALS = {
+    (1, 1): "New Year",
+    (12, 31): "New Year's Eve",  # Add new festival
     # ... more dates
 }
 ```
-
-### Customize Brand Voice
-
-Edit the system prompts in `src/prompts/news_prompts.py` and `src/prompts/festival_prompts.py` to adjust caption styles.
 
 ---
 
@@ -316,16 +326,27 @@ Edit the system prompts in `src/prompts/news_prompts.py` and `src/prompts/festiv
 2. **Use strong passwords** - Especially for Instagram
 3. **Rotate API keys** - Periodically regenerate Gemini API keys
 4. **Monitor usage** - Check Google AI Studio for API quota
-5. **Backup tracking files** - Save `shown_news.txt` and festival logs
 
 ---
 
-## 📚 Next Steps
+## 📚 Project Structure
 
-- Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design details
-- Check [CODEBASE_DOCUMENTATION.md](./CODEBASE_DOCUMENTATION.md) for complete technical reference
-- Explore `main.py` to customize bot behavior
-- Add more festival dates or adjust posting schedules
+```
+airman-social-bot/
+├── main.py                    # Entry point
+├── run.py                     # Runner script
+├── config/settings.py         # Configuration
+├── modules/                   # Core modules
+│   ├── gemini_client.py       # AI integration
+│   ├── news_fetcher.py       # News fetching
+│   ├── image_branding.py     # Image processing
+│   ├── instagram_poster.py   # Instagram posting
+│   └── feedback_store.py    # Post tracking
+├── tests/                     # Test suite
+├── assets/                    # Brand assets
+├── data/                      # Data files
+└── logs/                      # Log files
+```
 
 ---
 

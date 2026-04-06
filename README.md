@@ -39,23 +39,46 @@ python main.py
 airman-social-bot/
 ├── main.py                    # Entry point for Telegram bot
 ├── run.py                     # Convenience runner script
+├── pyproject.toml             # Project config (ruff, mypy, pytest)
 ├── requirements.txt           # Dependencies
 ├── .env.example              # Environment template
+├── .pre-commit-config.yaml   # Git hooks for code quality
 │
-├── src/                      # Source code modules
-│   ├── config.py             # App configuration
+├── config/                    # Configuration
+│   └── settings.py           # Centralized settings
+│
+├── modules/                   # Core bot modules
+│   ├── telegram_bot.py       # Telegram bot handlers
+│   ├── orchestrator.py       # Workflow orchestration
+│   ├── gemini_client.py      # Gemini AI integration
+│   ├── news_fetcher.py       # News fetching (RSS/API)
+│   ├── image_branding.py     # Image processing & branding
+│   ├── instagram_poster.py   # Instagram publishing
+│   ├── linkedin_poster.py   # LinkedIn publishing
+│   ├── festival_checker.py  # Festival calendar
+│   └── feedback_store.py    # Post tracking & feedback
+│
+├── src/                       # Utility modules
 │   ├── logger.py             # Logging setup
-│   ├── services/             # Core business logic
-│   ├── utils/                # Helper utilities
-│   └── prompts/              # Generative AI prompts
+│   ├── prompts/              # AI prompts
+│   │   ├── festival_prompts.py
+│   │   └── font_styles.py
+│   └── utils/                # Helper utilities
+│       └── csv_logger.py
+│
+├── legacy/                    # Deprecated code (reference only)
+│   └── src/                  # Original src/ (superseded by modules/)
+│
+├── tests/                    # Test suite
+│   ├── conftest.py          # Pytest fixtures
+│   ├── test_gemini_client.py
+│   ├── test_news_fetcher.py
+│   └── test_feedback_store.py
 │
 ├── docs/                     # Documentation
-│   ├── README.md
 │   ├── QUICKSTART.md
 │   ├── ARCHITECTURE.md
 │   └── CODEBASE_DOCUMENTATION.md
-│
-├── tests/                    # Testing scripts
 │
 ├── assets/                   # Brand assets
 │   └── logo.png             # AIRMAN logo
@@ -86,6 +109,24 @@ airman-social-bot/
 - **Social Media**: Instagrapi, LinkedIn API
 - **Image Processing**: Pillow (PIL)
 - **Content Sourcing**: feedparser
+
+---
+
+## 🧪 Testing & Code Quality
+
+```bash
+# Run tests
+pytest tests/ -v
+
+# Lint code
+ruff check .
+
+# Type checking
+mypy modules/ --config-file=pyproject.toml
+
+# Install pre-commit hooks
+pre-commit install
+```
 
 ---
 
