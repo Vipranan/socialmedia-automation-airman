@@ -1,8 +1,10 @@
 """News fetching service using RSS feeds — 3-bucket pipeline."""
 import os
+
 import feedparser
-from src.logger import logger
+
 from src.config import PRIORITY_FEEDS, SHOWN_NEWS_FILE
+from src.logger import logger
 from src.utils import load_shown_news, save_shown_news
 
 # Global set to track headlines already shown

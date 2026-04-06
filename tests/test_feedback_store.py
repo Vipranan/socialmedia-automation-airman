@@ -1,15 +1,13 @@
 """Tests for feedback_store module."""
 
 import os
-import pytest
-import tempfile
 
 os.environ["FEEDBACK_DB_PATH"] = ":memory:"
 
 
 def test_init_db_creates_table(tmp_path):
     """Test that init_db creates the posts table."""
-    from modules.feedback_store import init_db, get_all_posts
+    from modules.feedback_store import get_all_posts, init_db
 
     db_path = str(tmp_path / "test.db")
     os.environ["FEEDBACK_DB_PATH"] = db_path
@@ -38,9 +36,9 @@ def test_mark_posted(tmp_path):
     """Test marking a record as posted."""
     from modules.feedback_store import (
         create_post_record,
-        mark_posted,
         get_all_posts,
         init_db,
+        mark_posted,
     )
 
     db_path = str(tmp_path / "test.db")

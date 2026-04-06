@@ -1,6 +1,5 @@
 """Tests for gemini_client module."""
 
-import pytest
 from unittest.mock import patch
 
 from modules.gemini_client import generate_news_headline

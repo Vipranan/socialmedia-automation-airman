@@ -1,9 +1,10 @@
 """CSV logging utilities."""
-import os
 import csv
+import os
 from datetime import datetime
-from src.logger import logger
+
 from src.config import POST_LOG_FILE
+from src.logger import logger
 
 FIELDNAMES = ['timestamp', 'date', 'time', 'post_type', 'content', 'media_id', 'status']
 
@@ -13,7 +14,7 @@ def _needs_header() -> bool:
     if not os.path.exists(POST_LOG_FILE):
         return True
     try:
-        with open(POST_LOG_FILE, 'r', encoding='utf-8') as f:
+        with open(POST_LOG_FILE, encoding='utf-8') as f:
             reader = csv.DictReader(f)
             return 'status' not in (reader.fieldnames or [])
     except Exception:
@@ -25,7 +26,7 @@ def _migrate_if_needed() -> None:
     if not os.path.exists(POST_LOG_FILE):
         return
     try:
-        with open(POST_LOG_FILE, 'r', encoding='utf-8') as f:
+        with open(POST_LOG_FILE, encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if 'status' in (reader.fieldnames or []):
                 return  # Already up to date

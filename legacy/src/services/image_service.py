@@ -1,12 +1,12 @@
 """Image generation and formatting service."""
+import asyncio
 import io
 import os
 import uuid
-import asyncio
 
-from PIL import Image
 from google import genai
 from google.genai import types
+from PIL import Image
 
 from src.config import GEMINI_API_KEY
 from src.logger import logger

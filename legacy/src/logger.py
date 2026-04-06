@@ -1,6 +1,6 @@
 """Logging configuration."""
-import os
 import logging
+import os
 
 # Create logs directory
 os.makedirs("logs", exist_ok=True)

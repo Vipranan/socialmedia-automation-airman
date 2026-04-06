@@ -1,7 +1,8 @@
 """Instagram service for posting content."""
 from instagrapi import Client
+
+from src.config import INSTAGRAM_PASSWORD, INSTAGRAM_USERNAME
 from src.logger import logger
-from src.config import INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
 
 # Initialize Instagram Client
 cl = Client()

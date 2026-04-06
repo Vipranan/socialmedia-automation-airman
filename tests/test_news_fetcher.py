@@ -1,7 +1,6 @@
 """Tests for news_fetcher module."""
 
-import pytest
-from modules.news_fetcher import fetch_aviation_news, _categorise
+from modules.news_fetcher import _categorise, fetch_aviation_news
 
 
 def test_fetch_aviation_news_returns_list():

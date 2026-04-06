@@ -1,8 +1,8 @@
 """Pytest configuration and fixtures."""
 
 import os
+
 import pytest
-from pathlib import Path
 
 # Set test environment
 os.environ["TELEGRAM_BOT_TOKEN"] = "test_token"

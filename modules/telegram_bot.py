@@ -11,16 +11,22 @@ Commands:
 
 import asyncio
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     Application,
-    CommandHandler,
-    MessageHandler,
     CallbackQueryHandler,
+    CommandHandler,
     ContextTypes,
+    MessageHandler,
     filters,
 )
-from config.settings import TELEGRAM_BOT_TOKEN, TELEGRAM_ADMIN_CHAT_ID, TELEGRAM_ADMIN_IDS
+
+from config.settings import (
+    TELEGRAM_ADMIN_CHAT_ID,
+    TELEGRAM_ADMIN_IDS,
+    TELEGRAM_BOT_TOKEN,
+)
 from modules.feedback_store import LABEL_DISPLAY, POSITIVE_LABELS
 
 logger = logging.getLogger(__name__)
@@ -267,7 +273,7 @@ async def handle_fest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 @_admin_only
 async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    from modules.feedback_store import get_feedback_summary, LABEL_DISPLAY
+    from modules.feedback_store import LABEL_DISPLAY, get_feedback_summary
     s = get_feedback_summary()
 
     lines = [
@@ -304,8 +310,8 @@ async def _run_news_workflow() -> None:
 
 
 async def _run_festival_workflow(festival_name: str = "") -> None:
-    from modules.orchestrator import run_festival_workflow
     from modules.festival_checker import get_todays_festival
+    from modules.orchestrator import run_festival_workflow
     try:
         festival = festival_name or get_todays_festival()
         if festival:

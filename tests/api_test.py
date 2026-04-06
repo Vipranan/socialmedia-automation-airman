@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -37,10 +38,11 @@ try:
     )
     if result.generated_images:
         for i, generated_image in enumerate(result.generated_images):
-            from PIL import Image
             import io
+
+            from PIL import Image
             image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-            image.save(f"gemini_test_output.jpg")
+            image.save("gemini_test_output.jpg")
             print("Success! Image saved as gemini_test_output.jpg")
     else:
         print("Image generation returned no result.")
