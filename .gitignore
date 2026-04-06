@@ -54,3 +54,6 @@ data/shown_news.txt
 
 # Instagram session
 session.json
+
+# Worktrees
+.worktrees/
