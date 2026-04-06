@@ -1,42 +1,49 @@
 """Centralised settings for all modules. Reads from .env via python-dotenv."""
 
+from __future__ import annotations
+
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # --- Telegram ---
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN: str | None = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_ADMIN_CHAT_ID: str | None = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
+TELEGRAM_ADMIN_IDS: list[int] = [
+    int(x.strip()) for x in os.getenv("TELEGRAM_ADMIN_IDS", "").split(",") if x.strip()
+]
 
 # --- Instagram ---
-INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME")
-INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+INSTAGRAM_USERNAME: str | None = os.getenv("INSTAGRAM_USERNAME")
+INSTAGRAM_PASSWORD: str | None = os.getenv("INSTAGRAM_PASSWORD")
 
 # --- LinkedIn ---
-LINKEDIN_ACCESS_TOKEN = os.getenv("LINKEDIN_ACCESS_TOKEN")
+LINKEDIN_ACCESS_TOKEN: str | None = os.getenv("LINKEDIN_ACCESS_TOKEN")
 
 # --- Gemini / Vertex AI ---
-GEMINI_API_KEY = os.getenv("GEMINI_API")
-GEMINI_TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
-GEMINI_IMAGE_MODEL = os.getenv("GEMINI_IMAGE_MODEL", "imagen-4.0-generate-001")
-GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
-GCP_LOCATION = os.getenv("GCP_LOCATION", "us-central1")
+GEMINI_API_KEY: str | None = os.getenv("GEMINI_API")
+GEMINI_TEXT_MODEL: str = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
+GEMINI_IMAGE_MODEL: str = os.getenv("GEMINI_IMAGE_MODEL", "imagen-4.0-generate-001")
+GCP_PROJECT_ID: str | None = os.getenv("GCP_PROJECT_ID")
+GCP_LOCATION: str = os.getenv("GCP_LOCATION", "us-central1")
 
 # --- NewsAPI (optional — modules skip gracefully if not set) ---
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+NEWS_API_KEY: str | None = os.getenv("NEWS_API_KEY")
 
 # --- Brand ---
-COMPANY_NAME = "Airman Aeronautics"
-COMPANY_WEBSITE = "https://www.theairman.org/"
-COMPANY_LOGO_PATH = os.getenv("COMPANY_LOGO_PATH", "assets/airman.png")
+COMPANY_NAME: str = "Airman Aeronautics"
+COMPANY_WEBSITE: str = "https://www.theairman.org/"
+COMPANY_LOGO_PATH: str = os.getenv("COMPANY_LOGO_PATH", "assets/airman.png")
 
 # --- Paths ---
-IMAGE_OUTPUT_DIR = "data/images"
-FEEDBACK_DB_PATH = "data/feedback.db"
-POST_LOG_FILE = "data/post_history.csv"
+IMAGE_OUTPUT_DIR: str = "data/images"
+FEEDBACK_DB_PATH: str = "data/feedback.db"
+POST_LOG_FILE: str = "data/post_history.csv"
 
 # --- Festival calendar (month, day) → name ---
-INDIAN_FESTIVALS = {
+INDIAN_FESTIVALS: dict[tuple[int, int], str] = {
     (1, 1): "New Year",
     (1, 14): "Makar Sankranti & Pongal",
     (1, 26): "Republic Day",

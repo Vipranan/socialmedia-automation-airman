@@ -1,13 +1,17 @@
-import os
+from __future__ import annotations
+
 import logging
+import os
+
 from google import genai
 from google.genai import types
+
 from config.settings import (
-    GEMINI_API_KEY,
-    GEMINI_TEXT_MODEL,
-    GEMINI_IMAGE_MODEL,
     COMPANY_NAME,
     COMPANY_WEBSITE,
+    GEMINI_API_KEY,
+    GEMINI_IMAGE_MODEL,
+    GEMINI_TEXT_MODEL,
     IMAGE_OUTPUT_DIR,
 )
 
@@ -72,6 +76,7 @@ Output ONLY the caption with hashtags.
 # Text generation helpers
 # ---------------------------------------------------------------------------
 
+
 def _generate_text(prompt: str) -> str:
     response = client.models.generate_content(
         model=GEMINI_TEXT_MODEL,
@@ -81,12 +86,25 @@ def _generate_text(prompt: str) -> str:
 
 
 def generate_news_headline(title: str) -> str:
-    """Generate a short punchy headline (max 7 words) from a news title."""
+    """Generate a short punchy headline (max 7 words) from a news title.
+
+    Args:
+        title: The original news article title.
+
+    Returns:
+        A cleaned headline string (max 7 words).
+    """
     headline = _generate_text(
         f"Write a punchy headline for this aviation news: '{title}'. "
         f"Maximum 7 words. Title case. No punctuation at the end. No quotes. Just the headline."
     )
-    headline = headline.replace("*", "").replace("_", "").replace("#", "").replace('"', "").strip()
+    headline = (
+        headline.replace("*", "")
+        .replace("_", "")
+        .replace("#", "")
+        .replace('"', "")
+        .strip()
+    )
     words = headline.split()
     if len(words) > 7:
         headline = " ".join(words[:7])
@@ -94,6 +112,16 @@ def generate_news_headline(title: str) -> str:
 
 
 def generate_image_prompt(title: str, summary: str, headline: str) -> str:
+    """Generate an Imagen prompt for an Instagram poster from news content.
+
+    Args:
+        title: The news article title.
+        summary: The news article summary/description.
+        headline: The generated headline for the news.
+
+    Returns:
+        An image generation prompt string.
+    """
     instruction = f"""Aviation news: {title}. {summary}
 
 Write an Imagen image generation prompt for a Hero Image with Text Overlay style Instagram poster.
@@ -106,19 +134,44 @@ Rules:
 Return ONLY the image generation prompt. Aspect ratio 1:1."""
 
     prompt = _generate_text(instruction)
-    print(f"\n{'='*60}\nGENERATED IMAGE PROMPT:\n{prompt}\n{'='*60}\n")
+    print(f"\n{'=' * 60}\nGENERATED IMAGE PROMPT:\n{prompt}\n{'=' * 60}\n")
     logger.info(f"Image prompt generated: {prompt[:120]}...")
     return prompt.strip()
 
 
 def generate_caption(title: str, summary: str, source: str, url: str) -> str:
-    return _generate_text(CAPTION_TEMPLATE.format(
-        company=COMPANY_NAME, title=title, summary=summary,
-        source=source, url=url, website=COMPANY_WEBSITE,
-    ))
+    """Generate an Instagram caption from news content.
+
+    Args:
+        title: The news article title.
+        summary: The news article summary.
+        source: The news source name.
+        url: The URL to the original article.
+
+    Returns:
+        A formatted Instagram caption string.
+    """
+    return _generate_text(
+        CAPTION_TEMPLATE.format(
+            company=COMPANY_NAME,
+            title=title,
+            summary=summary,
+            source=source,
+            url=url,
+            website=COMPANY_WEBSITE,
+        )
+    )
 
 
 def generate_festival_headline(festival_name: str) -> str:
+    """Generate a headline for a festival Instagram post.
+
+    Args:
+        festival_name: The name of the festival to generate a headline for.
+
+    Returns:
+        A cleaned headline string (max 8 words).
+    """
     headline = _generate_text(
         f"Write a headline for a {festival_name} Instagram post for an aviation brand. "
         f"Maximum 8 words. Plain text only. No punctuation at the end. No asterisks. No quotes. Just the headline."
@@ -132,6 +185,15 @@ def generate_festival_headline(festival_name: str) -> str:
 
 
 def generate_festival_image_prompt(festival_name: str, headline: str) -> str:
+    """Generate an Imagen prompt for a festival Instagram poster.
+
+    Args:
+        festival_name: The name of the festival being celebrated.
+        headline: The generated headline for the post.
+
+    Returns:
+        An image generation prompt string.
+    """
     instruction = f"""Festival: {festival_name}. Headline: {headline}.
 
 Write an Imagen image generation prompt for a Hero Image with Text Overlay style Instagram poster celebrating {festival_name} for a premium aviation brand. The result must look like a high-budget campaign poster from a world-class airline or aviation company. think premium Airlines festival ads.
@@ -151,22 +213,35 @@ Rules:
 Return ONLY the image generation prompt. Aspect ratio 1:1."""
 
     prompt = _generate_text(instruction)
-    print(f"\n{'='*60}\nFESTIVAL IMAGE PROMPT:\n{prompt}\n{'='*60}\n")
+    print(f"\n{'=' * 60}\nFESTIVAL IMAGE PROMPT:\n{prompt}\n{'=' * 60}\n")
     logger.info(f"Festival image prompt generated: {prompt[:120]}...")
     return prompt.strip()
 
 
 def generate_festival_caption(festival_name: str) -> str:
+    """Generate an Instagram caption for a festival celebration post.
+
+    Args:
+        festival_name: The name of the festival being celebrated.
+
+    Returns:
+        A formatted Instagram caption string with hashtags.
+    """
     festival_tag = festival_name.replace(" ", "")
-    return _generate_text(FESTIVAL_CAPTION_TEMPLATE.format(
-        company=COMPANY_NAME, festival=festival_name,
-        website=COMPANY_WEBSITE, festival_tag=festival_tag,
-    ))
+    return _generate_text(
+        FESTIVAL_CAPTION_TEMPLATE.format(
+            company=COMPANY_NAME,
+            festival=festival_name,
+            website=COMPANY_WEBSITE,
+            festival_tag=festival_tag,
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
 # Image generation (Imagen 4)
 # ---------------------------------------------------------------------------
+
 
 def generate_image(image_prompt: str, filename: str = "generated_image.png") -> str:
     """
@@ -194,4 +269,6 @@ def generate_image(image_prompt: str, filename: str = "generated_image.png") -> 
             return output_path
         logger.warning(f"Attempt {attempt} returned no images.")
 
-    raise ValueError("Imagen 4 returned no images after 2 attempts. Check the prompt or API quota.")
+    raise ValueError(
+        "Imagen 4 returned no images after 2 attempts. Check the prompt or API quota."
+    )
